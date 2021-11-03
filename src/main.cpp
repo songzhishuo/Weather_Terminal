@@ -1,7 +1,7 @@
 /*
  * @Author: Argon
  * @Date: 2021-11-02 15:41:41
- * @LastEditTime: 2021-11-03 15:24:06
+ * @LastEditTime: 2021-11-03 18:00:07
  * @LastEditors: Argon
  * @Description: 
  * @FilePath: \esp8266_get_weather\src\main.cpp
@@ -36,69 +36,104 @@
 #define DebugPrint(message)
 #endif
 
+
+typedef enum{
+    W_SUN = 0,              //晴天
+    W_PARTLY_CLOUDY,        //多云
+    W_OVERCAST,             //阴天
+    W_FOG,                  //雾
+    W_LIGHT_RAIN,           //小雨
+    W_MODERATE_RAIN,        //中雨
+    W_HEAVY_RAIN,           //大雨
+    W_RAINSTORM,            //暴雨
+    W_MAX,                //最大范围
+    W_UNKNOW,               //未知天气
+}WEATHER_E;
+
+typedef enum{
+    WEAK_SUN = 0,           //周日
+    WEAK_MON,               //周一
+    WEAK_TUES,
+    WEAK_WED,
+    WEAK_THUR,
+    WEAK_FRI,
+    WEAK_SAT,               //周六
+    WEAK_MAX, 
+    WEAK_UNKNOW,            //未知日期
+     
+}WEAK_DAY_E;
+
+typedef struct{
+    char day_temp;                   //白天温度
+    char night_temp;                 //夜晚温度
+    char weakday;                   //星期
+    char weather;                   //天气  
+    char date[16];                  //2021-11-03
+    char sun_rise_time[8];          //日出时间
+    char sun_down_time[8];          //日落时间
+}DAY_WEATHER_T;
+
+typedef struct 
+{
+    int city_id;                            //城市编号
+
+    char now_temp;                          //当前温度
+    char pm2_5_val;                         //PM2.5 浓度
+    char pm10_val;                          //PM10 浓度
+    char so2_val;                           //so2 浓度
+
+    DAY_WEATHER_T day_weather_data[7];      //近5天的天气情况
+    char city_name[64];                     //城市名称
+    char publishTime[32];                   //数据更新时间
+}ALL_WEATHER_DATA_T;
+
+
+
 bool autoConfig(void);
 void smartConfig(void);
 void http_client_init(void);
-int get_http_data(String response);
+int get_http_data(String &response);
 void json_data_analyze(String http_data);
+WEAK_DAY_E weakday_data_analyze(char * weakday_data);
+WEATHER_E weather_data_analyze(char weather_data);
 
 int get_fail_cnt = 0;           //HTTP数据获取失败计数
 int flag = HIGH;//默认当前灭灯
 long lastTime = 0;
 
 
-String url_data = "http://aider.meizu.com/app/weather/listWeather?cityIds=";
+String url_master_data = "http://aider.meizu.com/app/weather/listWeather?cityIds=";
 String city_id = "101210101";
 
 HTTPClient http;
 WiFiClient client;
 
-typedef enum{
-    W_SUN = 0,              //晴天
-    W_PARTLY_CLOUDY,        //多云
-    W_OVERCAST,             //阴天
-    W_LIGHT_RAIN,           //小雨
-    W_MODERATE_RAIN,        //中雨
-    W_HEAVY_RAIN,           //大雨
-    W_RAINSTORM,            //暴雨
-    W_UNKNOW,               //未知天气
-    W_E_MAX,                //最大范围
-}WEATHER_E;
 
-
-typedef struct{
-    int day_temp;
-    int night_temp;
-    WEATHER_E weather;              //天气  
-    char date[12];                  //2021-11-03
-    char sun_rise_time[6];
-    char sun_down_time[6];
-    
-}DAY_WEATHER_T;
-
-
+const char WEAK_DEF_ARRY[WEAK_MAX][32] = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
+const char WEATHER_DEF_ARRY[W_E_MAX][32] = {"晴","多云","阴","雾","小雨","中雨","大雨","暴雨"}; 
+ALL_WEATHER_DATA_T all_weather_data = {0};
 /**
 * @Desc 初始化操作
 */
 void setup() {
-  Serial.begin(BAUD_RATE);
-  
-  WiFi.disconnect();
-  if(!autoConfig()){
+    Serial.begin(BAUD_RATE);
+
+    WiFi.disconnect();
+    if(!autoConfig()){
     smartConfig();
     DebugPrint("Connecting to WiFi");//写几句提示，哈哈
-    while (WiFi.status() != WL_CONNECTED) {
-    //这个函数是wifi连接状态，返回wifi链接状态
-       delay(500);
-       DebugPrint(".");
+        while (WiFi.status() != WL_CONNECTED) {
+        //这个函数是wifi连接状态，返回wifi链接状态
+            delay(500);
+            DebugPrint(".");
+        }
     }
-  }
   
-  delay(1000);
-  //digitalWrite(LED, LOW);
-  DebugPrintln("IP address: ");
-  DebugPrintln(WiFi.localIP());//WiFi.localIP()返回8266获得的ip地址
-  lastTime = millis();
+    delay(1000);
+    //digitalWrite(LED, LOW);
+    DebugPrintln("IP address: ");
+    DebugPrintln(WiFi.localIP());//WiFi.localIP()返回8266获得的ip地址
+    lastTime = millis();
 
     http_client_init();
   //使能软件看门狗的触发间隔
@@ -151,7 +186,6 @@ bool autoConfig(){
   return false;
 }
 
-
 /**
 * 开启SmartConfig功能
 */
@@ -182,11 +216,9 @@ void smartConfig()
   }
 }
 
-
-
 void http_client_init()
 {
-    url_data = url_data + city_id;
+    String url_data = url_master_data + city_id;
 
     DebugPrint("HTTP url :");
     DebugPrintln(url_data);
@@ -197,7 +229,7 @@ void http_client_init()
     /*代理信息设置*/
 }
 
-int get_http_data(String response)
+int get_http_data(String &response)
 {
     int ret = 0;
     int http_code = http.GET();
@@ -210,7 +242,7 @@ int get_http_data(String response)
             response =  http.getString();
             DebugPrintln("get data successfully!!!!");
 
-            DebugPrintln(response);
+            //DebugPrintln(response);                       //打印原始数据
            
             ret = 0;
         }
@@ -218,6 +250,7 @@ int get_http_data(String response)
         {
             DebugPrintln("get data error");
             ret = -1;
+            goto GET_DATA_ERR;
         }
 
     }
@@ -226,7 +259,7 @@ int get_http_data(String response)
         get_fail_cnt++;
         if(get_fail_cnt >= GET_DATA_FAIL_MAX)           //超过获取失败最大次数
         {
-            Serial.printf("[HTTP] get weather data error cnt full, clean it");
+            Serial.printf("[HTTP] get weather data error cnt full, clean it\r\n");
             get_fail_cnt = 0;
             /*reconnect HTTP Server*/
             //http.disconnect(false);
@@ -242,14 +275,42 @@ int get_http_data(String response)
     http.end();
 
     return ret;
+
+GET_DATA_ERR:
+    {
+        get_fail_cnt++;
+        if(get_fail_cnt >= GET_DATA_FAIL_MAX)           //超过获取失败最大次数
+        {
+            Serial.printf("[HTTP] get weather data error cnt full, clean it");
+            get_fail_cnt = 0;
+            /*reconnect HTTP Server*/
+            //http.disconnect(false);
+            http.end();
+            http_client_init();
+        }
+        else
+        {
+            Serial.printf("[HTTP]get weather data error, cnt[%d]", get_fail_cnt);
+        }
+
+        return ret;
+    }
 }
 
 //天气数据解析
 void json_data_analyze(String http_data)
 {
-    //DynamicJsonBuffer json_buffer;    //5K
     DynamicJsonBuffer jsonBuffer;
-    //String today_temp;
+    char day_temp = 0, night_temp = 0;
+    char weakday_data_str[32] = {0};
+    char weakday = 0;
+    char date[16] = {0};
+
+    char sun_rise_time[8] = {0};
+    char sun_down_time[8] = {0};
+
+    //DebugPrintln(http_data);
+
     JsonObject& root = jsonBuffer.parseObject(http_data);
     if(!root.success())
     {
@@ -257,22 +318,84 @@ void json_data_analyze(String http_data)
         return ;
     }
 
-    // char str[15] = {0};
-    // String today_temp;
-    // strcpy(str, root["value"][0]["weathers"][0]["temp_day_c"]);
-    // today_temp= str;
+    day_temp = root["value"][0]["weathers"][0]["temp_day_c"];                   //白天温度
+    night_temp = root["value"][0]["weathers"][0]["temp_night_c"];               //夜间温度
 
-    int day_temp = root["value"][0]["weathers"][0]["temp_day_c"];
-    DebugPrint("--->today Template :");
-    DebugPrintln(day_temp);
+    strcpy(weakday_data_str, root["value"][0]["weathers"][0]["week"]);          //星期
+    weakday = weakday_data_analyze(weakday_data_str);
 
-   // DebugPrint("--->tomorrow Template data");
-   // DebugPrintln(root["value"][0]["weathers"][1]["temp_day_c"]);
+    strcpy(date, root["value"][0]["weathers"][0]["date"]);
+    strcpy(sun_rise_time, root["value"][0]["weathers"][0]["sun_rise_time"]);
+    strcpy(sun_down_time, root["value"][0]["weathers"][0]["sun_down_time"]);
 
-    //root.
+    all_weather_data.day_weather_data[0].day_temp = day_temp;
+    all_weather_data.day_weather_data[0].night_temp = night_temp;
+    all_weather_data.day_weather_data[0].weakday = weakday;
+    strcpy(all_weather_data.day_weather_data[0].date, date);
+    strcpy(all_weather_data.day_weather_data[0].sun_rise_time, sun_rise_time);
+    strcpy(all_weather_data.day_weather_data[0].sun_down_time, sun_down_time);
 
-  //String output;
-  //root.printTo(output);
-
+    Serial.printf("day tem[%d] night tem[%d] weak[%d] date[%s]\r\n", day_temp, night_temp, weakday, date);
+    Serial.printf("rise time[%s] down time[%s]\r\n", sun_rise_time, sun_down_time);
 
 }
+
+//解析周数据
+WEAK_DAY_E weakday_data_analyze(char * weakday_data)
+{
+    char weak_enum = WEAK_UNKNOW;
+
+    //WEAK_DEF_ARRY
+    for(int i = 0; i < WEAK_MAX; i++)
+    {
+        if(strcmp(weakday_data, WEAK_DEF_ARRY[i]) == 0)  //找到匹配项            
+        {
+            weak_enum = i;
+            break;
+        }
+        else 
+        {
+            if(i == WEAK_MAX-1)                 //最后一项还没匹配到
+            {
+                weak_enum = WEAK_UNKNOW;   
+            }
+        }
+    }
+
+    if((weak_enum == WEAK_UNKNOW) || (weak_enum == WEAK_MAX))
+    {
+        Serial.printf("[data analyze] weak data illegal,weak data [%d]\r\n",weak_enum);
+    }
+    return (WEAK_DAY_E)weak_enum;
+}
+
+//天气数据解析
+WEATHER_E weather_data_analyze(char weather_data)
+{
+    char weather_enum = 0;
+
+    //WEATHER_DEF_ARRY
+    for(int i = 0; i < WEAK_MAX; i++)
+    {
+        if(strcmp(weather_data, WEATHER_DEF_ARRY[i]) == 0)  //找到匹配项            
+        {
+            weather_enum = i;
+            break;
+        }
+        else 
+        {
+            if(i == W_MAX-1)                 //最后一项还没匹配到
+            {
+                weather_enum = W_UNKNOW;   
+            }
+        }
+    }
+
+    if((weather_enum == W_UNKNOW) || (weather_enum == W_MAX))
+    {
+        Serial.printf("[data analyze] weather data illegal,weather data [%d]\r\n",weather_enum);
+    }
+    return (WEATHER_E)weather_enum;
+
+}
+//WEATHER_DEF_ARRY
