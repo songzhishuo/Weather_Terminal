@@ -1,7 +1,7 @@
 /*
  * @Author: Argon
  * @Date: 2021-11-02 15:41:41
- * @LastEditTime: 2021-11-03 18:00:07
+ * @LastEditTime: 2021-11-04 10:40:06
  * @LastEditors: Argon
  * @Description: 
  * @FilePath: \esp8266_get_weather\src\main.cpp
@@ -84,7 +84,7 @@ typedef struct
 
     DAY_WEATHER_T day_weather_data[7];      //近5天的天气情况
     char city_name[64];                     //城市名称
-    char publishTime[32];                   //数据更新时间
+    char publish_time[32];                   //数据更新时间
 }ALL_WEATHER_DATA_T;
 
 
@@ -93,9 +93,9 @@ bool autoConfig(void);
 void smartConfig(void);
 void http_client_init(void);
 int get_http_data(String &response);
-void json_data_analyze(String http_data);
-WEAK_DAY_E weakday_data_analyze(char * weakday_data);
-WEATHER_E weather_data_analyze(char weather_data);
+void json_data_analyze(String http_data,ALL_WEATHER_DATA_T *weather_data);
+WEAK_DAY_E weakday_data_analyze(char* weakday_data);
+WEATHER_E weather_data_analyze(char* weather_data);
 
 int get_fail_cnt = 0;           //HTTP数据获取失败计数
 int flag = HIGH;//默认当前灭灯
@@ -110,7 +110,8 @@ WiFiClient client;
 
 
 const char WEAK_DEF_ARRY[WEAK_MAX][32] = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
-const char WEATHER_DEF_ARRY[W_E_MAX][32] = {"晴","多云","阴","雾","小雨","中雨","大雨","暴雨"}; 
+const char WEATHER_DEF_ARRY[W_MAX][32] = {"晴","多云","阴","雾","小雨","中雨","大雨","暴雨"}; 
+
 ALL_WEATHER_DATA_T all_weather_data = {0};
 /**
 * @Desc 初始化操作
@@ -151,7 +152,7 @@ void loop() {
     {
         DebugPrintln("!!!!!!!!!!!!!!!!!----------\r\n");
             
-        json_data_analyze(data_str);                        //解析数据              
+        json_data_analyze(data_str, &all_weather_data);                        //解析数据              
         DebugPrintln("\r\n");
 
     }
@@ -236,11 +237,11 @@ int get_http_data(String &response)
     //String response;
     if(http_code)                       // get data successful
     {
-        Serial.printf("[http] GET code:%d\n", http_code);
+        Serial.printf("[HTTP]GET code:%d\n", http_code);
         if(http_code == HTTP_CODE_OK)
         {
             response =  http.getString();
-            DebugPrintln("get data successfully!!!!");
+            DebugPrintln("[HTTP]get data successfully!!!!");
 
             //DebugPrintln(response);                       //打印原始数据
            
@@ -248,7 +249,7 @@ int get_http_data(String &response)
         }
         else
         {
-            DebugPrintln("get data error");
+            DebugPrintln("[HTTP]get data error");
             ret = -1;
             goto GET_DATA_ERR;
         }
@@ -298,18 +299,32 @@ GET_DATA_ERR:
 }
 
 //天气数据解析
-void json_data_analyze(String http_data)
+void json_data_analyze(String http_data,ALL_WEATHER_DATA_T *weather_data)
 {
     DynamicJsonBuffer jsonBuffer;
-    char day_temp = 0, night_temp = 0;
-    char weakday_data_str[32] = {0};
+
+    char weakday_data_str[32] = {0};                //星期原始数据
+    char weather_data_str[32] = {0};                //天气原始数据
+
+    char date[16] = {0};                            //日期
+
+    char sun_rise_time[8] = {0};                    //日出时间
+    char sun_down_time[8] = {0};                    //日落时间
+    char pub_time_str[32] = {0};                    //数据更新时间
+    char city_name_str[64] = {0};                   //城市名
+
+    char day_temp = 0;
+    char night_temp = 0;
+
     char weakday = 0;
-    char date[16] = {0};
+    char weather = 0;
 
-    char sun_rise_time[8] = {0};
-    char sun_down_time[8] = {0};
+    char pm2_5 = 0;
+    char pm10 = 0;
+    char so2 = 0;
+    char temp = 0;
+    char city_id = 0;
 
-    //DebugPrintln(http_data);
 
     JsonObject& root = jsonBuffer.parseObject(http_data);
     if(!root.success())
@@ -324,20 +339,43 @@ void json_data_analyze(String http_data)
     strcpy(weakday_data_str, root["value"][0]["weathers"][0]["week"]);          //星期
     weakday = weakday_data_analyze(weakday_data_str);
 
+    strcpy(weather_data_str, root["value"][0]["weathers"][0]["weather"]);
+    weather = weather_data_analyze(weather_data_str);
+
     strcpy(date, root["value"][0]["weathers"][0]["date"]);
     strcpy(sun_rise_time, root["value"][0]["weathers"][0]["sun_rise_time"]);
     strcpy(sun_down_time, root["value"][0]["weathers"][0]["sun_down_time"]);
 
-    all_weather_data.day_weather_data[0].day_temp = day_temp;
-    all_weather_data.day_weather_data[0].night_temp = night_temp;
-    all_weather_data.day_weather_data[0].weakday = weakday;
-    strcpy(all_weather_data.day_weather_data[0].date, date);
-    strcpy(all_weather_data.day_weather_data[0].sun_rise_time, sun_rise_time);
-    strcpy(all_weather_data.day_weather_data[0].sun_down_time, sun_down_time);
+    pm2_5 = root["value"][0]["pm25"]["pm25"];
+    pm10 = root["value"][0]["pm25"]["pm10"];
+    so2 = root["value"][0]["pm25"]["so2"];
+    temp = root["value"][0]["realtime"]["temp"];
+
+    strcpy(pub_time_str, root["value"][0]["pm25"]["upDateTime"]);
+    strcpy(city_name_str, root["value"][0]["city"]);                               //中文城市名称
+    city_id = root["value"][0]["cityid"];
+
+    weather_data->day_weather_data[0].day_temp = day_temp;
+    weather_data->day_weather_data[0].night_temp = night_temp;
+    weather_data->day_weather_data[0].weakday = weakday;
+    weather_data->day_weather_data[0].weather = weather;
+    strcpy(weather_data->day_weather_data[0].date, date);
+    strcpy(weather_data->day_weather_data[0].sun_rise_time, sun_rise_time);
+    strcpy(weather_data->day_weather_data[0].sun_down_time, sun_down_time);
+
+
+    weather_data->city_id = city_id;
+    weather_data->now_temp = temp;
+    weather_data->pm2_5_val = pm2_5;
+    weather_data->pm10_val = pm10;
+    weather_data->so2_val = so2;
+    strcpy(weather_data->publish_time, pub_time_str);
+    strcpy(weather_data->city_name, city_name_str);
 
     Serial.printf("day tem[%d] night tem[%d] weak[%d] date[%s]\r\n", day_temp, night_temp, weakday, date);
     Serial.printf("rise time[%s] down time[%s]\r\n", sun_rise_time, sun_down_time);
-
+    Serial.printf("weather[%d] pm2.5[%d] pm10[%d] so2[%d] temp[%d]\r\n", weather, pm2_5, pm10, so2, temp);
+    Serial.printf("publish time[%s] city name[%s]\r\n", pub_time_str, city_name_str);
 }
 
 //解析周数据
@@ -370,7 +408,7 @@ WEAK_DAY_E weakday_data_analyze(char * weakday_data)
 }
 
 //天气数据解析
-WEATHER_E weather_data_analyze(char weather_data)
+WEATHER_E weather_data_analyze(char *weather_data)
 {
     char weather_enum = 0;
 
@@ -398,4 +436,3 @@ WEATHER_E weather_data_analyze(char weather_data)
     return (WEATHER_E)weather_enum;
 
 }
-//WEATHER_DEF_ARRY
