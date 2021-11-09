@@ -1,13 +1,13 @@
 /*
  * @Author: Argon
  * @Date: 2021-11-02 15:41:41
- * @LastEditTime: 2021-11-04 10:40:06
+ * @LastEditTime: 2021-11-04 18:02:11
  * @LastEditors: Argon
  * @Description: 
  * @FilePath: \esp8266_get_weather\src\main.cpp
  * 1Talk is cheap. Show me the code. (*｀皿´*)ﾉ 
  */
-#include <Arduino.h>
+
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
@@ -325,7 +325,6 @@ void json_data_analyze(String http_data,ALL_WEATHER_DATA_T *weather_data)
     char temp = 0;
     char city_id = 0;
 
-
     JsonObject& root = jsonBuffer.parseObject(http_data);
     if(!root.success())
     {
@@ -362,7 +361,6 @@ void json_data_analyze(String http_data,ALL_WEATHER_DATA_T *weather_data)
     strcpy(weather_data->day_weather_data[0].date, date);
     strcpy(weather_data->day_weather_data[0].sun_rise_time, sun_rise_time);
     strcpy(weather_data->day_weather_data[0].sun_down_time, sun_down_time);
-
 
     weather_data->city_id = city_id;
     weather_data->now_temp = temp;

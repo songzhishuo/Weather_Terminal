@@ -1,3 +1,12 @@
+<!--
+ * @Author: Argon
+ * @Date: 2021-11-04 15:00:04
+ * @LastEditTime: 2021-11-08 10:55:02
+ * @LastEditors: Argon
+ * @Description: 
+ * @FilePath: \esp8266_get_weather\term.md
+ * 1Talk is cheap. Show me the code. (*｀皿´*)ﾉ 
+-->
 # 数据获取
 
 ## 天气获取接口
@@ -59,4 +68,7 @@ print(out_data)
 print(json_data['value'][0]['weathers'][1]['temp_day_c'])
 
 ```
+
+# ICON 适配
+和风天气开发者平台制作了很多的天气图标，只需将其转换为我们所需的格式即可。仓库地址(https://github.com/qwd/Icons/tree/main/icons)
 
