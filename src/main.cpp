@@ -17,6 +17,12 @@
 #include "my_system.h"
 #include "my_weather.h"         //weather struct
 
+
+#include"TFT_eSPI.h"
+#include"Free_Fonts.h" //include the header file
+#include <lvgl.h>
+#include "lv_demo_stress.h"
+
 #define GET_DATA_FAIL_MAX 5
 
 WiFiMulti wifiMulti;
@@ -30,69 +36,171 @@ int get_http_data(String &response);
 void json_data_analyze(String http_data,ALL_WEATHER_DATA_T *weather_data);
 WEAK_DAY_E weakday_data_analyze(char* weakday_data);
 WEATHER_E weather_data_analyze(char* weather_data);
+void wifi_connect(const char* ssid, const char * password);
+void tft_test();
 
 int get_fail_cnt = 0;           //HTTP数据获取失败计数
 int flag = HIGH;//默认当前灭灯
 long lastTime = 0;
 
-
-
-
 ALL_WEATHER_DATA_T all_weather_data = {0};
 
+TFT_eSPI tft = TFT_eSPI(); 
+#if (LVGL == 1)
+static lv_disp_buf_t disp_buf;
+static lv_color_t buf[LV_HOR_RES_MAX * 10];
+#endif
+
 void setup() {
+    tft_test();
+ 
+    delay(300);
+
     Serial.begin(115200);
     while(!Serial); // Wait for Serial to be ready
 
     Serial.println("hello");
+#if (NETWORK == 1)
+    // WiFi.mode(WIFI_AP_STA);
+    // WiFi.disconnect();
 
-    WiFi.mode(WIFI_AP_STA);
-    WiFi.disconnect();
- 
-    Serial.println("Connecting to WiFi..");
-    WiFi.begin(ssid, password);
- 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.println("Connecting to WiFi..");
-        WiFi.begin(ssid, password);
-    }
+    // Serial.println("Connecting to WiFi..");
+    // WiFi.begin(ssid, password);
 
-    Serial.println("Connected to the WiFi network");
-    Serial.print("IP Address: ");
-    Serial.println (WiFi.localIP()); // prints out the device's IP address
-    Serial.print("Dev mac:  ");
-    Serial.println(WiFi.macAddress());
+    // while (WiFi.status() != WL_CONNECTED) {
+    //     delay(500);
+    //     Serial.println("Connecting to WiFi..");
+    //     WiFi.begin(ssid, password);
+    // }
 
+    wifi_connect(ssid, password);
 
+    http_client_init();   
+#endif
+    /*TFT LCD Test*/
 
-    http_client_init();
-  // wifi_connect(ssid, password);
-  // Serial.println("test \r\n");
 }
  
+#if (USE_LV_LOG != 0) && (LVGL == 1)
+/* Serial debugging */
+void my_print(lv_log_level_t level, const char * file, uint32_t line, const char * dsc)
+{
 
+  Serial.printf("%s@%d->%s\r\n", file, line, dsc);
+  delay(100);
+}
+#endif
+
+#if (LVGL == 1)
+/* Display flushing */
+void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
+{
+  uint16_t c;
+
+  tft.startWrite(); /* Start new TFT transaction */
+  tft.setAddrWindow(area->x1, area->y1, (area->x2 - area->x1 + 1), (area->y2 - area->y1 + 1)); /* set the working window */
+  for (int y = area->y1; y <= area->y2; y++) {
+    for (int x = area->x1; x <= area->x2; x++) {
+      c = color_p->full;
+      tft.writeColor(c, 1);
+      color_p++;
+    }
+  }
+  tft.endWrite(); /* terminate TFT transaction */
+  lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
+}
+
+
+/* Reading input device (simulated encoder here) */
+bool read_encoder(lv_indev_drv_t * indev, lv_indev_data_t * data)
+{
+  static int32_t last_diff = 0;
+  int32_t diff = 0; /* Dummy - no movement */
+  int btn_state = LV_INDEV_STATE_REL; /* Dummy - no press */
+
+  data->enc_diff = diff - last_diff;;
+  data->state = btn_state;
+
+  last_diff = diff;
+
+  return false;
+}
+
+void tft_test()
+{
+
+  lv_init();
+
+#if USE_LV_LOG != 0
+  lv_log_register_print(my_print); /* register print function for debugging */
+#endif
+
+  tft.begin(); /* TFT init */
+  tft.setRotation(3); /* Landscape orientation */
+
+  lv_disp_buf_init(&disp_buf, buf, NULL, LV_HOR_RES_MAX * 10);
+
+  /*Initialize the display*/
+  lv_disp_drv_t disp_drv;
+  lv_disp_drv_init(&disp_drv);
+  disp_drv.hor_res = 320;
+  disp_drv.ver_res = 240;
+  disp_drv.flush_cb = my_disp_flush;
+  disp_drv.buffer = &disp_buf;
+  lv_disp_drv_register(&disp_drv);
+
+  /*Initialize the touch pad*/
+  lv_indev_drv_t indev_drv;
+  lv_indev_drv_init(&indev_drv);
+  indev_drv.type = LV_INDEV_TYPE_ENCODER;
+  indev_drv.read_cb = read_encoder;
+  lv_indev_drv_register(&indev_drv);
+  /*stress test*/
+  lv_demo_stress();
+}
+
+
+/* Interrupt driven periodic handler */
+static void lv_tick_handler(void)
+{
+
+  lv_tick_inc(LVGL_TICK_PERIOD);
+}
+
+#endif /*LVGL == 1*/
+
+unsigned int task_cnt = 0;
 
 /**
 * @Desc  主函数
 */
 void loop() {
+
     String data_str;
     int ret = 0;
-    ret = get_http_data(data_str);
-    if (ret == 0)       //get data successful
+#if (LVGL == 1)  
+    lv_tick_handler();
+    lv_task_handler(); /* let the GUI do its work */
+#endif    
+    task_cnt ++;  
+  
+    if(task_cnt >= 400)
     {
-        DebugPrintln("!!!!!!!!!!!!!!!!!----------\r\n");
-            
-        json_data_analyze(data_str, &all_weather_data);                        //解析数据              
-        DebugPrintln("\r\n");
-
+      task_cnt = 0;
+      /*get weather data*/
+      ret = get_http_data(data_str);
+      if (ret == 0)       //get data successful
+      {
+          DebugPrintln("!!!!!!!!!!!!!!!!!----------\r\n");
+              
+          json_data_analyze(data_str, &all_weather_data);                        //解析数据              
+          DebugPrintln("\r\n");
+      }
     }
-    delay(2000);
 }
 
 
-
+#if (NETWORK == 1)
 void http_client_init()
 {
     String url_data = url_master_data + city_id;
@@ -329,4 +437,8 @@ void wifi_connect(const char* ssid, const char * password)
     Serial.println("Connected to the WiFi network");
     Serial.print("IP Address: ");
     Serial.println (WiFi.localIP()); // prints out the device's IP address
+    Serial.print("Dev mac:  ");
+    Serial.println(WiFi.macAddress());
 }
+
+#endif /*NETWORK == 1*/
