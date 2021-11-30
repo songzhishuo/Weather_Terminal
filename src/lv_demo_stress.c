@@ -38,7 +38,219 @@ static uint32_t mem_free_start = 0;
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
+typedef struct
+{
+    lv_obj_t* home;
+    lv_obj_t* home_cont_top;
+    lv_obj_t* home_labeldate;
+    lv_obj_t* home_cont_down;
+    lv_obj_t* home_cont_master;
+    lv_obj_t* home_label_time;
+}lv_ui;
 
+static lv_ui test;              /*label 全局定义*/
+
+void demo_test(lv_ui* ui) {
+
+    //Write codes home
+    ui->home = lv_scr_act();//lv_obj_create(NULL, NULL);
+
+    //Write codes home_cont_top
+    ui->home_cont_top = lv_cont_create(ui->home, NULL);
+
+    //Write style LV_CONT_PART_MAIN for home_cont_top
+    static lv_style_t style_home_cont_top_main;
+    lv_style_init(&style_home_cont_top_main);
+
+    //Write style state: LV_STATE_DEFAULT for style_home_cont_top_main
+    lv_style_set_radius(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_bg_color(&style_home_cont_top_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_color(&style_home_cont_top_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_dir(&style_home_cont_top_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    lv_style_set_bg_opa(&style_home_cont_top_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_border_color(&style_home_cont_top_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_border_width(&style_home_cont_top_main, LV_STATE_DEFAULT, 1);
+    lv_style_set_border_opa(&style_home_cont_top_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_pad_left(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_right(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_top(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_bottom(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_obj_add_style(ui->home_cont_top, LV_CONT_PART_MAIN, &style_home_cont_top_main);
+    lv_obj_set_pos(ui->home_cont_top, 0, 0);
+    lv_obj_set_size(ui->home_cont_top, 320, 100);
+    lv_obj_set_click(ui->home_cont_top, false);
+    lv_cont_set_layout(ui->home_cont_top, LV_LAYOUT_OFF);
+    lv_cont_set_fit(ui->home_cont_top, LV_FIT_NONE);
+
+    //Write style state: LV_STATE_DEFAULT for style_home_cont_top_main
+    lv_style_set_radius(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_bg_color(&style_home_cont_top_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_color(&style_home_cont_top_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_dir(&style_home_cont_top_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    lv_style_set_bg_opa(&style_home_cont_top_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_border_color(&style_home_cont_top_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_border_width(&style_home_cont_top_main, LV_STATE_DEFAULT, 1);
+    lv_style_set_border_opa(&style_home_cont_top_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_pad_left(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_right(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_top(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_bottom(&style_home_cont_top_main, LV_STATE_DEFAULT, 0);
+    lv_obj_add_style(ui->home_cont_top, LV_CONT_PART_MAIN, &style_home_cont_top_main);
+    lv_obj_set_pos(ui->home_cont_top, 0, 0);
+    lv_obj_set_size(ui->home_cont_top, 320, 100);
+    lv_obj_set_click(ui->home_cont_top, false);
+    lv_cont_set_layout(ui->home_cont_top, LV_LAYOUT_OFF);
+    lv_cont_set_fit(ui->home_cont_top, LV_FIT_NONE);
+
+    //Write codes home_labeldate
+    ui->home_labeldate = lv_label_create(ui->home, NULL);
+    lv_label_set_text(ui->home_labeldate, "20 Nov 2020");
+    lv_label_set_long_mode(ui->home_labeldate, LV_LABEL_LONG_BREAK);
+    lv_label_set_align(ui->home_labeldate, LV_LABEL_ALIGN_RIGHT);
+
+    //Write style LV_LABEL_PART_MAIN for home_labeldate
+    static lv_style_t style_home_labeldate_main;
+    lv_style_init(&style_home_labeldate_main);
+
+    //Write style state: LV_STATE_DEFAULT for style_home_labeldate_main
+    lv_style_set_radius(&style_home_labeldate_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_bg_color(&style_home_labeldate_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_color(&style_home_labeldate_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_dir(&style_home_labeldate_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    lv_style_set_bg_opa(&style_home_labeldate_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_text_color(&style_home_labeldate_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+    lv_style_set_text_font(&style_home_labeldate_main, LV_STATE_DEFAULT, &lv_font_montserrat_16);
+    lv_style_set_text_letter_space(&style_home_labeldate_main, LV_STATE_DEFAULT, 2);
+    lv_style_set_pad_left(&style_home_labeldate_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_right(&style_home_labeldate_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_top(&style_home_labeldate_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_bottom(&style_home_labeldate_main, LV_STATE_DEFAULT, 0);
+    lv_obj_add_style(ui->home_labeldate, LV_LABEL_PART_MAIN, &style_home_labeldate_main);
+    lv_obj_set_pos(ui->home_labeldate, 92, 48);
+    lv_obj_set_size(ui->home_labeldate, 217, 0);
+
+    //Write codes home_cont_down
+    ui->home_cont_down = lv_cont_create(ui->home, NULL);
+
+    //Write style LV_CONT_PART_MAIN for home_cont_down
+    static lv_style_t style_home_cont_1_main;
+    lv_style_init(&style_home_cont_1_main);
+
+    //Write style state: LV_STATE_DEFAULT for style_home_cont_1_main
+    lv_style_set_radius(&style_home_cont_1_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_bg_color(&style_home_cont_1_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_color(&style_home_cont_1_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+    lv_style_set_bg_grad_dir(&style_home_cont_1_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    lv_style_set_bg_opa(&style_home_cont_1_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_border_color(&style_home_cont_1_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_border_width(&style_home_cont_1_main, LV_STATE_DEFAULT, 1);
+    lv_style_set_border_opa(&style_home_cont_1_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_pad_left(&style_home_cont_1_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_right(&style_home_cont_1_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_top(&style_home_cont_1_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_bottom(&style_home_cont_1_main, LV_STATE_DEFAULT, 0);
+    lv_obj_add_style(ui->home_cont_down, LV_CONT_PART_MAIN, &style_home_cont_1_main);
+    lv_obj_set_pos(ui->home_cont_down, 0, 98);
+    lv_obj_set_size(ui->home_cont_down, 320, 142);
+    lv_obj_set_click(ui->home_cont_down, false);
+    lv_cont_set_layout(ui->home_cont_down, LV_LAYOUT_OFF);
+    lv_cont_set_fit(ui->home_cont_down, LV_FIT_NONE);
+
+
+    //Write codes home_cont_master
+    ui->home_cont_master = lv_cont_create(ui->home, NULL);
+
+    //Write style LV_CONT_PART_MAIN for home_cont_master
+    static lv_style_t style_home_cont_master_main;
+    lv_style_init(&style_home_cont_master_main);
+
+    //Write style state: LV_STATE_DEFAULT for style_home_cont_master_main
+    lv_style_set_radius(&style_home_cont_master_main, LV_STATE_DEFAULT, 5);
+    lv_style_set_bg_color(&style_home_cont_master_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+    lv_style_set_bg_grad_color(&style_home_cont_master_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+    lv_style_set_bg_grad_dir(&style_home_cont_master_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    lv_style_set_bg_opa(&style_home_cont_master_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_border_color(&style_home_cont_master_main, LV_STATE_DEFAULT, lv_color_make(0x99, 0x99, 0x99));
+    lv_style_set_border_width(&style_home_cont_master_main, LV_STATE_DEFAULT, 1);
+    lv_style_set_border_opa(&style_home_cont_master_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_pad_left(&style_home_cont_master_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_right(&style_home_cont_master_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_top(&style_home_cont_master_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_bottom(&style_home_cont_master_main, LV_STATE_DEFAULT, 0);
+    lv_obj_add_style(ui->home_cont_master, LV_CONT_PART_MAIN, &style_home_cont_master_main);
+    lv_obj_set_pos(ui->home_cont_master, 25, 75);
+    lv_obj_set_size(ui->home_cont_master, 265, 150);
+    lv_obj_set_click(ui->home_cont_master, false);
+    lv_cont_set_layout(ui->home_cont_master, LV_LAYOUT_OFF);
+    lv_cont_set_fit(ui->home_cont_master, LV_FIT_NONE);
+
+#if 1
+    //Write codes home_label_time
+    ui->home_label_time = lv_label_create(ui->home, NULL);
+    lv_label_set_text(ui->home_label_time, "08:00");
+    lv_label_set_long_mode(ui->home_label_time, LV_LABEL_LONG_BREAK);
+    lv_label_set_align(ui->home_label_time, LV_LABEL_ALIGN_RIGHT);
+
+    //Write style LV_LABEL_PART_MAIN for home_label_time
+    static lv_style_t style_home_label_time_main;
+    lv_style_init(&style_home_label_time_main);
+
+    //Write style state: LV_STATE_DEFAULT for style_home_label_time_main
+    lv_style_set_radius(&style_home_label_time_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_bg_color(&style_home_label_time_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_color(&style_home_label_time_main, LV_STATE_DEFAULT, lv_color_make(0x2f, 0x32, 0x43));
+    lv_style_set_bg_grad_dir(&style_home_label_time_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    lv_style_set_bg_opa(&style_home_label_time_main, LV_STATE_DEFAULT, 255);
+    lv_style_set_text_color(&style_home_label_time_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+    lv_style_set_text_font(&style_home_label_time_main, LV_STATE_DEFAULT, &lv_font_montserrat_32);          // need open LV_FONT_MONTSERRAT_32 define 
+    lv_style_set_text_letter_space(&style_home_label_time_main, LV_STATE_DEFAULT, 2);
+    lv_style_set_pad_left(&style_home_label_time_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_right(&style_home_label_time_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_top(&style_home_label_time_main, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_bottom(&style_home_label_time_main, LV_STATE_DEFAULT, 0);
+    lv_obj_add_style(ui->home_label_time, LV_LABEL_PART_MAIN, &style_home_label_time_main);
+    lv_obj_set_pos(ui->home_label_time, 94, 8);
+    lv_obj_set_size(ui->home_label_time, 217, 0);
+#endif
+}
+
+void update_time(void* arg)
+{
+    static char hour = 0, min = 0, sec = 0;
+    char time_buf[10] = { 0 };
+    //printf("timer down \r\n");
+
+    sec++;
+    if (sec >= 60)
+    {
+        sec = 0;
+        min++;
+        if (min >= 60)
+        {
+            min = 0;
+            hour++;
+            if (hour >= 24)
+            {
+                hour = 0;
+            }
+        }
+
+
+    }
+    sprintf(time_buf, "%02d:%02d:%02d", hour, min, sec);
+    lv_label_set_text(test.home_label_time, time_buf);
+}
+
+void lv_demo_stress(void)
+{
+
+    demo_test(&test);
+
+    /*创建时钟任务*/
+    //lv_task_create(update_time, 1000, LV_TASK_PRIO_LOW, NULL);  // 1秒任务
+}
+
+#if 0
 void lv_demo_stress(void)
 {
     lv_task_create(obj_test_task_cb, TIME_STEP, LV_TASK_PRIO_MID, NULL);
@@ -53,7 +265,7 @@ void lv_demo_stress(void)
     lv_mem_monitor(&mon);
     mem_free_start = mon.free_size;
 }
-
+#endif
 /**********************
  *   STATIC FUNCTIONS
  **********************/
