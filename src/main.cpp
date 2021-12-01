@@ -30,15 +30,22 @@ HTTPClient my_http;
 WiFiClient client;
 
 
-
+#if (NETWORK == 1)
 void http_client_init(void);
 int get_http_data(String &response);
+#endif
 void json_data_analyze(String http_data,ALL_WEATHER_DATA_T *weather_data);
+
 WEAK_DAY_E weakday_data_analyze(char* weakday_data);
 WEATHER_E weather_data_analyze(char* weather_data);
 void wifi_connect(const char* ssid, const char * password);
-void tft_test();
 
+#if (LVGL == 1)
+void tft_test();
+static void lv_tick_handler(void);
+#endif
+
+/*全局变量声明*/
 int get_fail_cnt = 0;           //HTTP数据获取失败计数
 int flag = HIGH;//默认当前灭灯
 long lastTime = 0;
@@ -46,35 +53,55 @@ long lastTime = 0;
 ALL_WEATHER_DATA_T all_weather_data = {0};
 
 TFT_eSPI tft = TFT_eSPI(); 
+
 #if (LVGL == 1)
 static lv_disp_buf_t disp_buf;
 static lv_color_t buf[LV_HOR_RES_MAX * 10];
 #endif
 
+#if 0
+static void Swtmr1_Callback(void* parameter)
+{
+    //软件定时器的回调函数，用户自己实现
+    Serial.println("hello timer test");
+}
+#endif
+
+
 void setup() {
+#if (LVGL == 1)    
     tft_test();
- 
+#endif
     delay(300);
 
-    Serial.begin(115200);
-    while(!Serial); // Wait for Serial to be ready
+    Serial.begin(BAUD_RATE);
+#if 0 
+    /***Test FreeRTOS***/
+  
+    static TimerHandle_t  Swtmr1_Handle = NULL;//软件定时器句柄
 
-    Serial.println("hello");
-#if (NETWORK == 1)
-    // WiFi.mode(WIFI_AP_STA);
-    // WiFi.disconnect();
-
-    // Serial.println("Connecting to WiFi..");
-    // WiFi.begin(ssid, password);
-
-    // while (WiFi.status() != WL_CONNECTED) {
-    //     delay(500);
-    //     Serial.println("Connecting to WiFi..");
-    //     WiFi.begin(ssid, password);
+    /* 定时器周期 1000(tick) *//* 周期模式 */ /* 为每个计时器分配一个索引的唯一 ID *//* 回调函数 */
+    //Swtmr1_Handle = xTimerCreate((const char*)"AutoReloadTimer",(TickType_t)1000,(UBaseType_t)pdTRUE,(void* )1,(TimerCallbackFunction_t)Swtmr1_Callback); );
+    // Swtmr1_Handle = xTimerCreate("AutoReloadTimer",1000,pdTRUE,(void *)1,(TimerCallbackFunction_t)Swtmr1_Callback);
+    // if(Swtmr1_Handle)
+    // {
+    //     printf("软件定时器1创建成功\r\n");
+    //     xTimerStart(Swtmr1_Handle,0);	//开启周期定时器
     // }
 
-    wifi_connect(ssid, password);
+    // vTaskStartScheduler();
 
+    xTaskCreate(ThreadA,     "Task A",       256, NULL, tskIDLE_PRIORITY + 2, &Handle_aTask);
+    xTaskCreate(ThreadB,     "Task B",       1024, NULL, tskIDLE_PRIORITY + 2, &Handle_bTask);
+#endif    
+
+#if (DEBUG == 1)
+    //while(!Serial); // Wait for Serial to be ready
+    Serial.println("hello");
+#endif
+    
+#if (NETWORK == 1)
+    wifi_connect(ssid, password);
     http_client_init();   
 #endif
     /*TFT LCD Test*/
@@ -184,10 +211,11 @@ void loop() {
 #endif    
     task_cnt ++;  
   
-    if(task_cnt >= 400)
+    if(task_cnt >= 4000)
     {
       task_cnt = 0;
       /*get weather data*/
+#if (NETWORK == 1)      
       ret = get_http_data(data_str);
       if (ret == 0)       //get data successful
       {
@@ -196,6 +224,8 @@ void loop() {
           json_data_analyze(data_str, &all_weather_data);                        //解析数据              
           DebugPrintln("\r\n");
       }
+#endif
+    
     }
 }
 
@@ -268,6 +298,7 @@ GET_DATA_ERR:
         {
             Serial.printf("[HTTP] get weather data error cnt full, clean it");
             get_fail_cnt = 0;
+
             /*reconnect HTTP Server*/
             //my_http.disconnect(false);
             my_http.end();
@@ -281,12 +312,11 @@ GET_DATA_ERR:
         return ret;
     }
 }
-
+//StaticJsonDocument<500> root;
 //天气数据解析
 void json_data_analyze(String http_data,ALL_WEATHER_DATA_T *weather_data)
 {
-    DynamicJsonBuffer jsonBuffer;
- 
+    DynamicJsonBuffer  jsonBuffer;
     char weakday_data_str[32] = {0};                //星期原始数据
     char weather_data_str[32] = {0};                //天气原始数据
 
@@ -442,3 +472,4 @@ void wifi_connect(const char* ssid, const char * password)
 }
 
 #endif /*NETWORK == 1*/
+
