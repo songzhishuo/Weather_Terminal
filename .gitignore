@@ -3,3 +3,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+
+!.pio/libdeps/seeed_wio_terminal/Seeed_Arduino_lvgl/src/src/lv_conf_internal.h
+!.pio/libdeps/seeed_wio_terminal/Seeed_Arduino_lvgl/lv_conf.h
