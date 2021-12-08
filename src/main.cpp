@@ -67,33 +67,19 @@ static void Swtmr1_Callback(void* parameter)
 }
 #endif
 
+unsigned long timer_tick_last = 0;
+unsigned long timer_tick_now = 0;
 
 void setup() {
+    pinMode(WIO_5S_PRESS, INPUT_PULLUP);
+    pinMode(WIO_BUZZER, OUTPUT);
+
 #if (LVGL == 1)    
     tft_test();
 #endif
     delay(300);
 
     Serial.begin(BAUD_RATE);
-#if 0 
-    /***Test FreeRTOS***/
-  
-    static TimerHandle_t  Swtmr1_Handle = NULL;//软件定时器句柄
-
-    /* 定时器周期 1000(tick) *//* 周期模式 */ /* 为每个计时器分配一个索引的唯一 ID *//* 回调函数 */
-    //Swtmr1_Handle = xTimerCreate((const char*)"AutoReloadTimer",(TickType_t)1000,(UBaseType_t)pdTRUE,(void* )1,(TimerCallbackFunction_t)Swtmr1_Callback); );
-    // Swtmr1_Handle = xTimerCreate("AutoReloadTimer",1000,pdTRUE,(void *)1,(TimerCallbackFunction_t)Swtmr1_Callback);
-    // if(Swtmr1_Handle)
-    // {
-    //     printf("软件定时器1创建成功\r\n");
-    //     xTimerStart(Swtmr1_Handle,0);	//开启周期定时器
-    // }
-
-    // vTaskStartScheduler();
-
-    xTaskCreate(ThreadA,     "Task A",       256, NULL, tskIDLE_PRIORITY + 2, &Handle_aTask);
-    xTaskCreate(ThreadB,     "Task B",       1024, NULL, tskIDLE_PRIORITY + 2, &Handle_bTask);
-#endif    
 
 #if (DEBUG == 1)
     //while(!Serial); // Wait for Serial to be ready
@@ -105,7 +91,7 @@ void setup() {
     http_client_init();   
 #endif
     /*TFT LCD Test*/
-
+    timer_tick_last = millis();             //初始化lvgl tick 定时器
 }
  
 #if (USE_LV_LOG != 0) && (LVGL == 1)
@@ -135,6 +121,9 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
   }
   tft.endWrite(); /* terminate TFT transaction */
   lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
+
+  
+
 }
 
 
@@ -196,24 +185,33 @@ static void lv_tick_handler(void)
 
 #endif /*LVGL == 1*/
 
-unsigned int task_cnt = 0;
 
-/**
-* @Desc  主函数
-*/
-void loop() {
+void button_task()              //按键函数
+{
+    unsigned int button_flag = 0;
+    static unsigned int button_flag_old = 1;
+    static char page_flag = false;
+    button_flag = digitalRead(WIO_5S_PRESS);
 
-    String data_str;
-    int ret = 0;
-#if (LVGL == 1)  
-    lv_tick_handler();
-    lv_task_handler(); /* let the GUI do its work */
-#endif    
-    task_cnt ++;  
-  
-    if(task_cnt >= 4000)
+    if(button_flag_old!=button_flag)
     {
-      task_cnt = 0;
+        button_flag_old=button_flag;
+        if(digitalRead(WIO_5S_PRESS) == HIGH)           //按键任务 按键抬起 此处后面要改成函数指针
+        {
+            change_page(page_flag);
+            page_flag = !page_flag;
+            Serial.println("5 Way Press");
+
+        }
+            
+    }
+}
+
+void network_task(lv_task_t * task)
+{
+    String data_str;
+    //unsigned long temp_delay = 0;
+    int ret = 0;
       /*get weather data*/
 #if (NETWORK == 1)      
       ret = get_http_data(data_str);
@@ -225,8 +223,88 @@ void loop() {
           DebugPrintln("\r\n");
       }
 #endif
-    
+
+}
+
+void my_task(lv_task_t * task)
+{
+    static char sec = 0;
+    static char min = 0;
+    button_task() ;
+    sec++;
+    if(sec >= 60)
+    {
+        sec = 0;
+        min++;
+        set_time(0,sec);
+        //Serial.printf("min{%d}\n",min);
     }
+    if(min >= 60)
+    {
+        min = 0;
+    }
+    
+
+}
+
+/**
+* @Desc  主函数
+*/
+unsigned int task_cnt = 0;
+
+unsigned int blink_cnt = 0;
+
+unsigned char init_flag = 0;
+void loop() {
+
+    // String data_str;
+    //unsigned long temp_delay = 0;
+    // int ret = 0;
+
+    if(!init_flag)
+    {
+        init_flag = true;
+        /**Init lvlg task**/
+        
+        lv_task_t * task2 = lv_task_create(network_task, 10000, LV_TASK_PRIO_MID, _NULL);
+        lv_task_t * task1 = lv_task_create(my_task, 1000, LV_TASK_PRIO_MID, _NULL);
+    }
+
+#if (LVGL == 1)  
+    
+    lv_task_handler(); /* let the GUI do its work */
+#endif    
+    //task_cnt ++;  
+
+    
+    
+    timer_tick_now = micros();
+    if((timer_tick_now - timer_tick_last) >= 1000)       //1ms
+    {
+        lv_tick_handler();
+        timer_tick_last = millis();
+    }
+
+    
+
+    // if(task_cnt >= 65530)
+    // {
+    //   task_cnt = 0;
+
+
+//       /*get weather data*/
+// #if (NETWORK == 1)      
+//       ret = get_http_data(data_str);
+//       if (ret == 0)       //get data successful
+//       {
+//           DebugPrintln("!!!!!!!!!!!!!!!!!----------\r\n");
+              
+//           json_data_analyze(data_str, &all_weather_data);                        //解析数据              
+//           DebugPrintln("\r\n");
+//       }
+// #endif
+    
+    // }
 }
 
 

@@ -14,6 +14,12 @@
 #define USE_LV_LOG 0
 #define LVGL_TICK_PERIOD 5
 
+/****************************
+ * 需要在lvgl的配置文件中修改如下配置
+ * #define LV_DISP_DEF_REFR_PERIOD      10      //[ms]
+ * #define LV_FONT_MONTSERRAT_32    1
+*****************************/
+
 const char* ssid = "JDCwifi_B89E";
 const char* password =  "199709183614";
 

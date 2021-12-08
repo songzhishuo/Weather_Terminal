@@ -27,7 +27,8 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 void lv_demo_stress(void);
-
+void change_page(char page);
+void set_time(char hour,char min);
 /**********************
  *      MACROS
  **********************/
