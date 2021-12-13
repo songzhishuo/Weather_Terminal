@@ -12,7 +12,7 @@
 
 /*LVGL config*/
 #define USE_LV_LOG 0
-#define LVGL_TICK_PERIOD 5
+#define LVGL_TICK_PERIOD 1      /*LVGL 时间片周期ms*/
 
 /****************************
  * 需要在lvgl的配置文件中修改如下配置
@@ -36,5 +36,8 @@ const char* password =  "199709183614";
 #else
 #define DebugPrint(message)
 #endif
+
+const String url_master_data = "http://aider.meizu.com/app/weather/listWeather?cityIds=";
+const String city_id = "101210101";
 
 #endif //__MY_SYSTEM_H__

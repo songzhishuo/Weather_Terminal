@@ -1,11 +1,6 @@
 #ifndef __MY_WEATHER_H__
 #define __MY_WEATHER_H__
 
-const String url_master_data = "http://aider.meizu.com/app/weather/listWeather?cityIds=";
-const String city_id = "101210101";
-
-
-
 typedef enum{
     W_SUN = 0,              //晴天
     W_PARTLY_CLOUDY,        //多云

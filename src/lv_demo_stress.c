@@ -40,6 +40,14 @@ static uint32_t mem_free_start = 0;
  **********************/
 typedef struct
 {
+    lv_chart_series_t * home1_chart_tem_0;      /*高温 曲线*/
+    lv_chart_series_t * home1_chart_tem_1;      /*低温 曲线*/
+}lv_chart_t;
+
+
+
+typedef struct
+{
     lv_obj_t* home;
     lv_obj_t* home_cont_top;
     lv_obj_t* home_labeldate;
@@ -52,13 +60,17 @@ typedef struct
 	lv_obj_t *home1_cont_1;
 	lv_obj_t *home1_cont_top;
 	lv_obj_t *home1_cont_down;
-	lv_obj_t *home1_chart_tem;
+	lv_obj_t *home1_chart_tem;              /*折线图*/
 
+    lv_chart_t home1_chart_line;             /*chart 控件 中折线*/
 }lv_ui;
 
 LV_IMG_DECLARE(_100_alpha_100x100);
 
 static lv_ui test;              /*label 全局定义*/
+
+// lv_chart_series_t * home1_chart_tem_0;
+// lv_chart_series_t * home1_chart_tem_1;
 
 void set_time(char hour,char min)
 {
@@ -73,15 +85,16 @@ void change_page(char page)         /*页面切换*/
     lv_obj_clean(lv_scr_act());
     if(page == 0)
     {
-        demo_test(&test);
-        lv_scr_load(test.home);
+        demo_test1(&test);
+        lv_scr_load(test.home1);
         //&page = 1;
 
     }
     else if(page == 1)
     {
-        demo_test1(&test);
-        lv_scr_load(test.home1);
+        demo_test(&test);
+        lv_scr_load(test.home);
+        
         //&page = 0;
     }
 
@@ -365,43 +378,100 @@ void demo_test1(lv_ui* ui) {
 	lv_cont_set_layout(ui->home1_cont_down, LV_LAYOUT_OFF);
 	lv_cont_set_fit(ui->home1_cont_down, LV_FIT_NONE);
 
-	//Write codes home1_chart_tem
-	ui->home1_chart_tem = lv_chart_create(ui->home1, NULL);
+	// //Write codes home1_chart_tem
+	// ui->home1_chart_tem = lv_chart_create(ui->home1, NULL);
 
-	//Write style LV_CHART_PART_BG for home1_chart_tem
-	static lv_style_t style_home1_chart_tem_bg;
-	lv_style_init(&style_home1_chart_tem_bg);
+	// //Write style LV_CHART_PART_BG for home1_chart_tem
+	// static lv_style_t style_home1_chart_tem_bg;
+	// lv_style_init(&style_home1_chart_tem_bg);
 
-	//Write style state: LV_STATE_DEFAULT for style_home1_chart_tem_bg
-	lv_style_set_bg_color(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
-	lv_style_set_bg_grad_color(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
-	lv_style_set_bg_grad_dir(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
-	lv_style_set_bg_opa(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 60);
-	lv_style_set_pad_left(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 5);
-	lv_style_set_pad_right(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 5);
-	lv_style_set_pad_top(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 5);
-	lv_style_set_pad_bottom(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 5);
-	lv_obj_add_style(ui->home1_chart_tem, LV_CHART_PART_BG, &style_home1_chart_tem_bg);
+	// //Write style state: LV_STATE_DEFAULT for style_home1_chart_tem_bg
+	// lv_style_set_bg_color(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	// lv_style_set_bg_grad_color(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	// lv_style_set_bg_grad_dir(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+	// lv_style_set_bg_opa(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 60);
+	// lv_style_set_pad_left(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 5);
+	// lv_style_set_pad_right(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 5);
+	// lv_style_set_pad_top(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 5);
+	// lv_style_set_pad_bottom(&style_home1_chart_tem_bg, LV_STATE_DEFAULT, 5);
+	// lv_obj_add_style(ui->home1_chart_tem, LV_CHART_PART_BG, &style_home1_chart_tem_bg);
 
-	//Write style LV_CHART_PART_SERIES_BG for home1_chart_tem
-	static lv_style_t style_home1_chart_tem_series_bg;
-	lv_style_init(&style_home1_chart_tem_series_bg);
+	// //Write style LV_CHART_PART_SERIES_BG for home1_chart_tem
+	// static lv_style_t style_home1_chart_tem_series_bg;
+	// lv_style_init(&style_home1_chart_tem_series_bg);
 
-	//Write style state: LV_STATE_DEFAULT for style_home1_chart_tem_series_bg
-	lv_style_set_line_color(&style_home1_chart_tem_series_bg, LV_STATE_DEFAULT, lv_color_make(0xe8, 0xe8, 0xe8));
-	lv_style_set_line_width(&style_home1_chart_tem_series_bg, LV_STATE_DEFAULT, 2);
-	lv_style_set_line_opa(&style_home1_chart_tem_series_bg, LV_STATE_DEFAULT, 255);
-	lv_obj_add_style(ui->home1_chart_tem, LV_CHART_PART_SERIES_BG, &style_home1_chart_tem_series_bg);
-	lv_obj_set_pos(ui->home1_chart_tem, 22, 28);
-	lv_obj_set_size(ui->home1_chart_tem, 277, 192);
-	lv_chart_set_type(ui->home1_chart_tem,LV_CHART_TYPE_LINE);
-	lv_chart_set_range(ui->home1_chart_tem,0,100);
-	lv_chart_set_div_line_count(ui->home1_chart_tem, 3, 5);
-	lv_chart_set_point_count(ui->home1_chart_tem, 5);
-	lv_chart_series_t * home1_chart_tem_0 = lv_chart_add_series(ui->home1_chart_tem, lv_color_make(0xff, 0x66, 0x66));
-	lv_chart_set_next(ui->home1_chart_tem, home1_chart_tem_0,10);
-	lv_chart_series_t * home1_chart_tem_1 = lv_chart_add_series(ui->home1_chart_tem, lv_color_make(0x65, 0xec, 0x69));
-	lv_chart_set_next(ui->home1_chart_tem, home1_chart_tem_1,20);
+	// //Write style state: LV_STATE_DEFAULT for style_home1_chart_tem_series_bg
+	// lv_style_set_line_color(&style_home1_chart_tem_series_bg, LV_STATE_DEFAULT, lv_color_make(0xe8, 0xe8, 0xe8));
+	// lv_style_set_line_width(&style_home1_chart_tem_series_bg, LV_STATE_DEFAULT, 2);
+	// lv_style_set_line_opa(&style_home1_chart_tem_series_bg, LV_STATE_DEFAULT, 255);
+	// lv_obj_add_style(ui->home1_chart_tem, LV_CHART_PART_SERIES_BG, &style_home1_chart_tem_series_bg);
+	// lv_obj_set_pos(ui->home1_chart_tem, 22, 28);
+	// lv_obj_set_size(ui->home1_chart_tem, 277, 192);
+	// lv_chart_set_type(ui->home1_chart_tem,LV_CHART_TYPE_LINE);
+	// lv_chart_set_range(ui->home1_chart_tem,0,100);
+	// lv_chart_set_div_line_count(ui->home1_chart_tem, 3, 5);
+	// lv_chart_set_point_count(ui->home1_chart_tem, 5);
+	// lv_chart_series_t * home1_chart_tem_0 = lv_chart_add_series(ui->home1_chart_tem, lv_color_make(0xff, 0x66, 0x66));
+	// lv_chart_set_next(ui->home1_chart_tem, home1_chart_tem_0,10);
+	// lv_chart_series_t * home1_chart_tem_1 = lv_chart_add_series(ui->home1_chart_tem, lv_color_make(0x65, 0xec, 0x69));
+	// lv_chart_set_next(ui->home1_chart_tem, home1_chart_tem_1,20);
+
+
+   //Write codes home1_chart_1
+    ui->home1_chart_tem = lv_chart_create(ui->home1, NULL);
+
+    //Write style LV_CHART_PART_BG for home1_chart_1
+    static lv_style_t style_home1_chart_1_bg;
+    lv_style_init(&style_home1_chart_1_bg);
+
+    //Write style state: LV_STATE_DEFAULT for style_home1_chart_1_bg
+    lv_style_set_bg_color(&style_home1_chart_1_bg, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+    lv_style_set_bg_grad_color(&style_home1_chart_1_bg, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+    lv_style_set_bg_grad_dir(&style_home1_chart_1_bg, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    lv_style_set_bg_opa(&style_home1_chart_1_bg, LV_STATE_DEFAULT, 255);
+    lv_style_set_pad_left(&style_home1_chart_1_bg, LV_STATE_DEFAULT, 40);
+    lv_style_set_pad_right(&style_home1_chart_1_bg, LV_STATE_DEFAULT, 5);
+    lv_style_set_pad_top(&style_home1_chart_1_bg, LV_STATE_DEFAULT, 10);
+    lv_style_set_pad_bottom(&style_home1_chart_1_bg, LV_STATE_DEFAULT, 10);
+    lv_obj_add_style(ui->home1_chart_tem, LV_CHART_PART_BG, &style_home1_chart_1_bg);
+
+    //Write style LV_CHART_PART_SERIES_BG for home1_chart_1
+    static lv_style_t style_home1_chart_1_series_bg;
+    lv_style_init(&style_home1_chart_1_series_bg);
+
+    //Write style state: LV_STATE_DEFAULT for style_home1_chart_1_series_bg
+    lv_style_set_line_color(&style_home1_chart_1_series_bg, LV_STATE_DEFAULT, lv_color_make(0xe8, 0xe8, 0xe8));
+    lv_style_set_line_width(&style_home1_chart_1_series_bg, LV_STATE_DEFAULT, 2);
+    lv_style_set_line_opa(&style_home1_chart_1_series_bg, LV_STATE_DEFAULT, 255);
+    lv_obj_add_style(ui->home1_chart_tem, LV_CHART_PART_SERIES_BG, &style_home1_chart_1_series_bg);
+    lv_obj_set_pos(ui->home1_chart_tem, 16, 26);
+    lv_obj_set_size(ui->home1_chart_tem, 292, 203);
+    lv_chart_set_type(ui->home1_chart_tem, LV_CHART_TYPE_LINE);
+    lv_chart_set_range(ui->home1_chart_tem, 0, 100);
+    lv_chart_set_div_line_count(ui->home1_chart_tem, 3, 3);                           //修改下划线的个数
+    //lv_chart_set_series_darking(ui->home1_chart_1, LV_OPA_80);
+    lv_chart_set_point_count(ui->home1_chart_tem, 5);
+    //lv_chart_series_t* 
+
+	//lv_chart_series_t * home1_chart_tem_0 = lv_chart_add_series(ui->home1_chart_tem, lv_color_make(0xff, 0x66, 0x66));
+	ui->home1_chart_line.home1_chart_tem_0 = lv_chart_add_series(ui->home1_chart_tem, lv_color_make(0xff, 0x66, 0x66));
+	//lv_chart_set_next(ui->home1_chart_tem, home1_chart_1_0, 30);
+	
+    //lv_chart_series_t * home1_chart_tem_1 = lv_chart_add_series(ui->home1_chart_tem, lv_color_make(0x65, 0xec, 0x69));
+	ui->home1_chart_line.home1_chart_tem_1 = lv_chart_add_series(ui->home1_chart_tem, lv_color_make(0x65, 0xec, 0x69));
+	//lv_chart_set_next(ui->home1_chart_tem, home1_chart_tem_1,10);
+
+    lv_chart_set_range(ui->home1_chart_tem, 0, 40);
+    lv_chart_set_y_tick_length(ui->home1_chart_tem, 10, 5);
+    lv_chart_set_y_tick_texts(ui->home1_chart_tem, "40\n30\n20\n10\n0", 4, LV_CHART_AXIS_DRAW_LAST_TICK);
+
+    /*添加渐变*/
+    lv_obj_set_style_local_bg_opa(ui->home1_chart_tem, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, LV_OPA_50); /*Max. opa.*/
+    lv_obj_set_style_local_bg_grad_dir(ui->home1_chart_tem, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+    lv_obj_set_style_local_bg_main_stop(ui->home1_chart_tem, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, 255);    /*Max opa on the top*/
+    lv_obj_set_style_local_bg_grad_stop(ui->home1_chart_tem, LV_CHART_PART_SERIES, LV_STATE_DEFAULT, 50);      /*Transparent on the bottom*/
+
+
 }
 
 void update_time(void* arg)
@@ -433,10 +503,12 @@ void update_time(void* arg)
 
 void lv_demo_stress(void)
 {
+    demo_test(&test);
+    lv_scr_load(test.home);
 
     //demo_test(&test);
-    demo_test1(&test);
-    lv_scr_load(test.home1);
+    //demo_test1(&test);
+    //lv_scr_load(test.home1);
     /*创建时钟任务*/
     //lv_task_create(update_time, 1000, LV_TASK_PRIO_LOW, NULL);  // 1秒任务
 }
@@ -876,3 +948,49 @@ static void auto_del(lv_obj_t * obj, uint32_t delay)
 
 }
 
+
+
+void chart_test(ALL_WEATHER_DATA_T data)
+{
+    static int i = 0;
+    //static int data = 0;
+    static int test1 = 0;
+    //static char night_tmp_old[5] = {0};
+    //static char day_tmp_old[5] = {0};
+
+    lv_chart_series_t *chart_0 = test.home1_chart_line.home1_chart_tem_0;//home1_chart_tem_0;//test.home1_chart_line->home1_chart_tem_0;
+    lv_chart_series_t *chart_1 = test.home1_chart_line.home1_chart_tem_1;//home1_chart_tem_1;//test.home1_chart_line->home1_chart_tem_1;
+    
+    if((chart_0 == NULL) || (chart_1 == NULL))          /*没有获取到指针*/
+    {
+        return ;                        
+    }
+    
+    for(i = 0;i<5;i++)
+    {
+        // if(data.day_weather_data[i].night_temp != night_tmp_old[i])     //不相同
+        // {
+        //     chart_1->points[i] = data.day_weather_data[i].night_temp;
+        //     night_tmp_old[i] = data.day_weather_data[i].night_temp;
+        // }
+    
+        // if(data.day_weather_data[i].day_temp != day_tmp_old[i])     //不相同
+        // {
+        //     chart_0->points[i] = data.day_weather_data[i].day_temp;
+        //     day_tmp_old[i] = data.day_weather_data[i].day_temp;
+        // }
+
+        chart_1->points[i] = data.day_weather_data[i].night_temp;
+        chart_0->points[i] = data.day_weather_data[i].day_temp;
+    }
+
+   // i++;
+
+  
+   // printf("data[%d]\n", data);
+    //task->user_data
+    //lv_obj_t* chart = test//task->user_data;
+
+    lv_chart_refresh(test.home1_chart_tem);
+ 
+}

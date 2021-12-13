@@ -14,7 +14,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "lvgl.h"
-
+#include "my_weather.h"
 /*********************
  *      DEFINES
  *********************/
@@ -29,6 +29,8 @@ extern "C" {
 void lv_demo_stress(void);
 void change_page(char page);
 void set_time(char hour,char min);
+
+void chart_test(ALL_WEATHER_DATA_T data);          /*折线绘制测试*/
 /**********************
  *      MACROS
  **********************/
