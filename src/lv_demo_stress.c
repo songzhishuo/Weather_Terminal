@@ -81,34 +81,24 @@ void set_time(char hour,char min)
 
 void change_page(char page)         /*页面切换*/
 {
-    //char page_num = &page;
     lv_obj_clean(lv_scr_act());
     if(page == 0)
     {
-        demo_test1(&test);
+        demo_test1(&test);    
         lv_scr_load(test.home1);
-        //&page = 1;
-
     }
     else if(page == 1)
     {
         demo_test(&test);
         lv_scr_load(test.home);
-        
-        //&page = 0;
     }
-
-    //page_num = !page_num;
-    
 }
 
 void demo_test(lv_ui* ui) {
 
     //Write codes home
     ui->home = lv_obj_create(NULL, NULL);   //lv_scr_act();
-
-
-
+    
     //Write codes home_cont_top
     ui->home_cont_top = lv_cont_create(ui->home, NULL);
 
@@ -952,11 +942,7 @@ static void auto_del(lv_obj_t * obj, uint32_t delay)
 
 void chart_test(ALL_WEATHER_DATA_T data)
 {
-    static int i = 0;
-    //static int data = 0;
-    static int test1 = 0;
-    //static char night_tmp_old[5] = {0};
-    //static char day_tmp_old[5] = {0};
+    int i = 0;
 
     lv_chart_series_t *chart_0 = test.home1_chart_line.home1_chart_tem_0;//home1_chart_tem_0;//test.home1_chart_line->home1_chart_tem_0;
     lv_chart_series_t *chart_1 = test.home1_chart_line.home1_chart_tem_1;//home1_chart_tem_1;//test.home1_chart_line->home1_chart_tem_1;
@@ -968,29 +954,9 @@ void chart_test(ALL_WEATHER_DATA_T data)
     
     for(i = 0;i<5;i++)
     {
-        // if(data.day_weather_data[i].night_temp != night_tmp_old[i])     //不相同
-        // {
-        //     chart_1->points[i] = data.day_weather_data[i].night_temp;
-        //     night_tmp_old[i] = data.day_weather_data[i].night_temp;
-        // }
-    
-        // if(data.day_weather_data[i].day_temp != day_tmp_old[i])     //不相同
-        // {
-        //     chart_0->points[i] = data.day_weather_data[i].day_temp;
-        //     day_tmp_old[i] = data.day_weather_data[i].day_temp;
-        // }
-
         chart_1->points[i] = data.day_weather_data[i].night_temp;
         chart_0->points[i] = data.day_weather_data[i].day_temp;
     }
 
-   // i++;
-
-  
-   // printf("data[%d]\n", data);
-    //task->user_data
-    //lv_obj_t* chart = test//task->user_data;
-
     lv_chart_refresh(test.home1_chart_tem);
- 
 }

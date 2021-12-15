@@ -37,7 +37,14 @@ const char* password =  "199709183614";
 #define DebugPrint(message)
 #endif
 
+/*天气相关*/
 const String url_master_data = "http://aider.meizu.com/app/weather/listWeather?cityIds=";
 const String city_id = "101210101";
 
+/*网络服NTP*/
+
+const char timeServer[] = "time.nist.gov"; // extenral NTP server e.g. time.nist.gov
+
+const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
+ 
 #endif //__MY_SYSTEM_H__
