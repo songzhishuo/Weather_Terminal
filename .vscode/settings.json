@@ -2,6 +2,8 @@
     "files.associations": {
         "wifimulti.h": "c",
         "wifista.h": "c",
-        "spi.h": "c"
+        "spi.h": "c",
+        "my_system.h": "c",
+        "my_weather.h": "c"
     }
 }

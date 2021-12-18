@@ -20,8 +20,6 @@
  * #define LV_FONT_MONTSERRAT_32    1
 *****************************/
 
-const char* ssid = "JDCwifi_B89E";
-const char* password =  "199709183614";
 
 /* Debug code */
 /* Debug printf to Serial printf ,If define 'DEBUG' is enable*/
