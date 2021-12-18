@@ -28,7 +28,8 @@ extern "C" {
  **********************/
 void lv_demo_stress(void);
 void change_page(char page);
-void set_time(char hour,char min);
+void lv_set_time(char *time);
+void lv_set_date(char *date);
 
 void chart_test(ALL_WEATHER_DATA_T data);          /*折线绘制测试*/
 /**********************

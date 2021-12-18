@@ -26,6 +26,8 @@
 const char* ssid = "JDCwifi_B89E";
 const char* password =  "199709183614";
 
+char month_dec2str[][6]={"","Jan.","Feb.","Mar.","Apr.","May.","Jun.","Jul.","Aug.","Sept.","Oct.","Nov","Dec."};
+
 #if (NETWORK == 1)
 // void http_client_init(void);
 // int get_http_data(String &response);
@@ -42,10 +44,10 @@ static void lv_tick_handler(void);
 #endif
 
 /*全局变量声明*/
-//int get_fail_cnt = 0;           //HTTP数据获取失败计数
-int flag = HIGH;//默认当前灭灯
+//int get_fail_cnt = 0;             //HTTP数据获取失败计数
+int flag = HIGH;                    //默认当前灭灯
 long lastTime = 0;
-static char page_flag = 0;      /*当前页面 0：今日天气主页 1：近5日天气*/
+static char page_flag = 0;          /*当前页面 0：今日天气主页 1：近5日天气*/
 
 /*用与比较拉取的数据是否更新*/
 static char night_tmp_old[5] = {0};
@@ -131,7 +133,8 @@ unsigned long getNTPtime() {
         // network not connected
         return 0;
     }
- 
+    
+
 }
  
 
@@ -160,13 +163,7 @@ unsigned long sendNTPpacket(const char* address) {
     udp.endPacket();
 }
  
-#if 0
-static void Swtmr1_Callback(void* parameter)
-{
-    //软件定时器的回调函数，用户自己实现
-    Serial.println("hello timer test");
-}
-#endif
+
 
 unsigned long timer_tick_last = 0;
 unsigned long timer_tick_now = 0;
@@ -217,7 +214,7 @@ void setup() {
     Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
  
     // adjust time using ntp time
-    rtc.adjust(DateTime(devicetime));
+    rtc.adjust(DateTime(devicetime));           /*将网络时间设置到rtc中*/
  
     // print boot update details
     Serial.println("RTC (boot) time updated.");
@@ -228,7 +225,7 @@ void setup() {
  
     // start millisdelays timers as required, adjust to suit requirements
     updateDelay.start(12 * 60 * 60 * 1000); // update time via ntp every 12 hrs
- 
+     
 
 }
  
@@ -425,12 +422,13 @@ void network_task(lv_task_t * task)
         
     }
     
-    Serial.println("---> network_task");
+   // Serial.println("---> network_task");
 }
 
 static char blink_flag = 0;
 void time_ntp_task(lv_task_t * task)
 {
+#if 0                   /*实时获取NTP时间 太慢了*/
     devicetime = getNTPtime();
     if (devicetime == 0) {
         Serial.println("Failed to get time from network time server.");
@@ -444,6 +442,45 @@ void time_ntp_task(lv_task_t * task)
         Serial.print("Adjusted RTC time is: ");
         Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
     }
+#endif
+
+    if(page_flag == 0)          /*在主天气页面需要刷新*/
+    {
+        char date_string_buf[30] = {0};
+        char time_string_buf[30] = {0};
+
+
+    
+        // Serial.print(now.year(), DEC);
+        // Serial.print('/');
+        // Serial.print(now.month(), DEC);
+        // Serial.print('/');
+        // Serial.print(now.day(), DEC);
+        // Serial.print(" ");
+        // Serial.print(now.hour(), DEC);
+        // Serial.print(':');
+        // Serial.print(now.minute(), DEC);
+        // Serial.print(':');
+        // Serial.print(now.second(), DEC);
+        // Serial.println();
+
+
+        now = rtc.now();
+
+        sprintf(date_string_buf, "%02d %s %d", now.day(), month_dec2str[now.month()], now.year());
+        sprintf(time_string_buf,"%02d:%02d:%02d", now.hour(), now.minute(), now.second());
+
+#if (DEBUG == 1)
+        Serial.println("=====================");
+        Serial.println(date_string_buf);
+        Serial.println(time_string_buf);
+        Serial.println("=====================");
+#endif
+        lv_set_time(time_string_buf);
+        lv_set_date(date_string_buf);
+
+    }
+
 }
 
 
@@ -452,7 +489,7 @@ void button_scan_task(lv_task_t * task)
     button_task() ;
 
 
-    Serial.println("---> my_task");
+    //Serial.println("---> my_task");
 
         //  digitalWrite(WIO_BUZZER, blink_flag);
         // blink_flag = !blink_flag;
@@ -467,8 +504,6 @@ char time_hour = 0;
 void software_rtc()     //软件RTC
 {
     time_cnt++;
-
-    //button_task() ;
 
     if(time_cnt >= 1000)            //1mS
     {
@@ -497,7 +532,6 @@ void software_rtc()     //软件RTC
             }
         }
     }
-
 }
 
 /**
@@ -517,7 +551,7 @@ void loop() {
         lv_task_t* task2 = lv_task_create(network_task, 1000, LV_TASK_PRIO_MID, _NULL);       // 1S
         button_task_id = lv_task_create(button_scan_task, 10, LV_TASK_PRIO_HIGHEST, _NULL);     //10mS
 
-        lv_task_t* time_task_id = lv_task_create(time_ntp_task, 9000, LV_TASK_PRIO_HIGHEST, _NULL);
+        lv_task_t* time_task_id = lv_task_create(time_ntp_task, 1000, LV_TASK_PRIO_HIGHEST, _NULL);
         lv_task_ready(button_task_id);
     }
 

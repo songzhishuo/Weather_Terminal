@@ -56,6 +56,7 @@ typedef struct
     lv_obj_t* home_label_time;
     lv_obj_t *home_img_weather_sun;
 
+
 	lv_obj_t *home1;
 	lv_obj_t *home1_cont_1;
 	lv_obj_t *home1_cont_top;
@@ -72,11 +73,14 @@ static lv_ui test;              /*label 全局定义*/
 // lv_chart_series_t * home1_chart_tem_0;
 // lv_chart_series_t * home1_chart_tem_1;
 
-void set_time(char hour,char min)
+void lv_set_time(char *time)
 {
-    char buf[20] = {0};
-    sprintf(buf,"%02d:%02d",hour, min);
-    lv_label_set_text(test.home_label_time, buf);
+    lv_label_set_text(test.home_label_time, time);
+}
+
+void lv_set_date(char *date)
+{
+    lv_label_set_text(test.home_labeldate, date);
 }
 
 void change_page(char page)         /*页面切换*/
@@ -230,7 +234,6 @@ void demo_test(lv_ui* ui) {
     lv_obj_set_pos(ui->home_labeldate, 92, 48);
     lv_obj_set_size(ui->home_labeldate, 217, 0);
 
-#if 1
     //Write codes home_label_time
     ui->home_label_time = lv_label_create(ui->home, NULL);
     lv_label_set_text(ui->home_label_time, "08:00");
@@ -278,7 +281,6 @@ void demo_test(lv_ui* ui) {
 	lv_img_set_pivot(ui->home_img_weather_sun, 0,0);
 	lv_img_set_angle(ui->home_img_weather_sun, 0);
 
-#endif
 }
 
 void demo_test1(lv_ui* ui) {
