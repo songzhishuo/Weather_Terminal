@@ -44,8 +44,6 @@ typedef struct
     lv_chart_series_t * home1_chart_tem_1;      /*低温 曲线*/
 }lv_chart_t;
 
-
-
 typedef struct
 {
     lv_obj_t* home;
@@ -55,6 +53,11 @@ typedef struct
     lv_obj_t* home_cont_master;
     lv_obj_t* home_label_time;
     lv_obj_t *home_img_weather_sun;
+	lv_obj_t *home_label_so2;
+	lv_obj_t *home_label_so2_val;
+	lv_obj_t *home_label_pm25_val;
+	lv_obj_t *home_label_tem;
+	lv_obj_t *home_label_pm25;
 
 
 	lv_obj_t *home1;
@@ -66,7 +69,12 @@ typedef struct
     lv_chart_t home1_chart_line;             /*chart 控件 中折线*/
 }lv_ui;
 
+
 LV_IMG_DECLARE(_100_alpha_100x100);
+LV_IMG_DECLARE(_104_alpha_100x100);
+LV_IMG_DECLARE(_302_alpha_100x100);
+LV_IMG_DECLARE(_317_alpha_100x100);
+LV_IMG_DECLARE(_999_alpha_100x100);
 
 static lv_ui test;              /*label 全局定义*/
 
@@ -82,6 +90,57 @@ void lv_set_date(char *date)
 {
     lv_label_set_text(test.home_labeldate, date);
 }
+
+void lv_set_so2_val(uint16_t date)
+{
+    char buf[20] = {0};
+    sprintf(buf, "%d", date);
+    lv_label_set_text(test.home_label_so2_val, buf);
+}
+
+void lv_set_pm25_val(uint16_t date)
+{
+    char buf[20] = {0};
+    sprintf(buf, "%d", date);
+    lv_label_set_text(test.home_label_pm25_val, buf);
+}
+
+void lv_set_temp_val(uint16_t date)
+{
+    char buf[20] = {0};
+    sprintf(buf, "%d°", date);
+    lv_label_set_text(test.home_label_tem, buf);
+}
+
+void lv_set_weather_icon(uint8_t icon_id)
+{
+    /*          代号对应表
+            100             晴天
+            302             雷雨
+            317             暴雨
+            //410             大暴雨
+            499             雪
+            999             未知
+    */
+//WEATHER_E
+
+    lv_img_dsc_t *img_dsc = NULL;
+    switch (icon_id)
+    {
+        case W_SUN:             img_dsc = &_100_alpha_100x100; break;           //晴天
+        case W_PARTLY_CLOUDY:      
+        case W_OVERCAST:        img_dsc = &_104_alpha_100x100; break;           //阴天    
+        case W_LIGHT_RAIN:      
+        case W_MODERATE_RAIN:   img_dsc = &_302_alpha_100x100; break;           //雷雨      
+        case W_HEAVY_RAIN:                
+        case W_RAINSTORM:       img_dsc = &_317_alpha_100x100; break;           //雷暴雨
+        default:                img_dsc = &_999_alpha_100x100;    break;
+    }
+
+    lv_img_set_src(test.home_img_weather_sun,img_dsc);
+}
+
+
 
 void change_page(char page)         /*页面切换*/
 {
@@ -280,6 +339,144 @@ void demo_test(lv_ui* ui) {
 	lv_img_set_src(ui->home_img_weather_sun,&_100_alpha_100x100);
 	lv_img_set_pivot(ui->home_img_weather_sun, 0,0);
 	lv_img_set_angle(ui->home_img_weather_sun, 0);
+
+
+	//Write codes home_label_tem
+	ui->home_label_tem = lv_label_create(ui->home_cont_master, NULL);
+	lv_label_set_text(ui->home_label_tem, "17°");
+	lv_label_set_long_mode(ui->home_label_tem, LV_LABEL_LONG_BREAK);
+	lv_label_set_align(ui->home_label_tem, LV_LABEL_ALIGN_CENTER);
+
+	//Write style LV_LABEL_PART_MAIN for home_label_tem
+	static lv_style_t style_home_label_tem_main;
+	lv_style_reset(&style_home_label_tem_main);
+
+	//Write style state: LV_STATE_DEFAULT for style_home_label_tem_main
+	lv_style_set_radius(&style_home_label_tem_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_bg_color(&style_home_label_tem_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_color(&style_home_label_tem_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_dir(&style_home_label_tem_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+	lv_style_set_bg_opa(&style_home_label_tem_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_text_color(&style_home_label_tem_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_text_font(&style_home_label_tem_main, LV_STATE_DEFAULT, &lv_font_montserrat_48);
+	lv_style_set_text_letter_space(&style_home_label_tem_main, LV_STATE_DEFAULT, 2);
+	lv_style_set_pad_left(&style_home_label_tem_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_right(&style_home_label_tem_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_top(&style_home_label_tem_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_bottom(&style_home_label_tem_main, LV_STATE_DEFAULT, 0);
+	lv_obj_add_style(ui->home_label_tem, LV_LABEL_PART_MAIN, &style_home_label_tem_main);
+	lv_obj_set_pos(ui->home_label_tem, 148, 7);
+	lv_obj_set_size(ui->home_label_tem, 115, 0);
+
+	//Write codes home_label_pm25
+	ui->home_label_pm25 = lv_label_create(ui->home_cont_master, NULL);
+	lv_label_set_text(ui->home_label_pm25, "PM2.5:");
+	lv_label_set_long_mode(ui->home_label_pm25, LV_LABEL_LONG_BREAK);
+	lv_label_set_align(ui->home_label_pm25, LV_LABEL_ALIGN_LEFT);
+
+	//Write style LV_LABEL_PART_MAIN for home_label_pm25
+	static lv_style_t style_home_label_pm25_main;
+	lv_style_reset(&style_home_label_pm25_main);
+
+	//Write style state: LV_STATE_DEFAULT for style_home_label_pm25_main
+	lv_style_set_radius(&style_home_label_pm25_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_bg_color(&style_home_label_pm25_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_color(&style_home_label_pm25_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_dir(&style_home_label_pm25_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+	lv_style_set_bg_opa(&style_home_label_pm25_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_text_color(&style_home_label_pm25_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_text_font(&style_home_label_pm25_main, LV_STATE_DEFAULT, &lv_font_montserrat_16);
+	lv_style_set_text_letter_space(&style_home_label_pm25_main, LV_STATE_DEFAULT, 2);
+	lv_style_set_pad_left(&style_home_label_pm25_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_right(&style_home_label_pm25_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_top(&style_home_label_pm25_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_bottom(&style_home_label_pm25_main, LV_STATE_DEFAULT, 0);
+	lv_obj_add_style(ui->home_label_pm25, LV_LABEL_PART_MAIN, &style_home_label_pm25_main);
+	lv_obj_set_pos(ui->home_label_pm25, 146, 93);
+	lv_obj_set_size(ui->home_label_pm25, 85, 0);
+
+	//Write codes home_label_pm25_val
+	ui->home_label_pm25_val = lv_label_create(ui->home_cont_master, NULL);
+	lv_label_set_text(ui->home_label_pm25_val, "91 ");
+	lv_label_set_long_mode(ui->home_label_pm25_val, LV_LABEL_LONG_BREAK);
+	lv_label_set_align(ui->home_label_pm25_val, LV_LABEL_ALIGN_LEFT);
+
+	//Write style LV_LABEL_PART_MAIN for home_label_pm25_val
+	static lv_style_t style_home_label_pm25_val_main;
+	lv_style_reset(&style_home_label_pm25_val_main);
+
+	//Write style state: LV_STATE_DEFAULT for style_home_label_pm25_val_main
+	lv_style_set_radius(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_bg_color(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_color(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_dir(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+	lv_style_set_bg_opa(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_text_color(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_text_font(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, &lv_font_montserrat_16);
+	lv_style_set_text_letter_space(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, 2);
+	lv_style_set_pad_left(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_right(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_top(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_bottom(&style_home_label_pm25_val_main, LV_STATE_DEFAULT, 0);
+	lv_obj_add_style(ui->home_label_pm25_val, LV_LABEL_PART_MAIN, &style_home_label_pm25_val_main);
+	lv_obj_set_pos(ui->home_label_pm25_val, 227, 90);
+	lv_obj_set_size(ui->home_label_pm25_val, 36, 0);
+
+	//Write codes home_label_so2
+	ui->home_label_so2 = lv_label_create(ui->home_cont_master, NULL);
+	lv_label_set_text(ui->home_label_so2, "SO2:");
+	lv_label_set_long_mode(ui->home_label_so2, LV_LABEL_LONG_BREAK);
+	lv_label_set_align(ui->home_label_so2, LV_LABEL_ALIGN_LEFT);
+
+	//Write style LV_LABEL_PART_MAIN for home_label_so2
+	static lv_style_t style_home_label_so2_main;
+	lv_style_reset(&style_home_label_so2_main);
+
+	//Write style state: LV_STATE_DEFAULT for style_home_label_so2_main
+	lv_style_set_radius(&style_home_label_so2_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_bg_color(&style_home_label_so2_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_color(&style_home_label_so2_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_dir(&style_home_label_so2_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+	lv_style_set_bg_opa(&style_home_label_so2_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_text_color(&style_home_label_so2_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_text_font(&style_home_label_so2_main, LV_STATE_DEFAULT, &lv_font_montserrat_16);
+	lv_style_set_text_letter_space(&style_home_label_so2_main, LV_STATE_DEFAULT, 2);
+	lv_style_set_pad_left(&style_home_label_so2_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_right(&style_home_label_so2_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_top(&style_home_label_so2_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_bottom(&style_home_label_so2_main, LV_STATE_DEFAULT, 0);
+	lv_obj_add_style(ui->home_label_so2, LV_LABEL_PART_MAIN, &style_home_label_so2_main);
+	lv_obj_set_pos(ui->home_label_so2, 163, 118);
+	lv_obj_set_size(ui->home_label_so2, 46, 0);
+
+	//Write codes home_label_so2_val
+	ui->home_label_so2_val = lv_label_create(ui->home_cont_master, NULL);
+	lv_label_set_text(ui->home_label_so2_val, "10");
+	lv_label_set_long_mode(ui->home_label_so2_val, LV_LABEL_LONG_BREAK);
+	lv_label_set_align(ui->home_label_so2_val, LV_LABEL_ALIGN_LEFT);
+
+	//Write style LV_LABEL_PART_MAIN for home_label_so2_val
+	static lv_style_t style_home_label_so2_val_main;
+	lv_style_reset(&style_home_label_so2_val_main);
+
+	//Write style state: LV_STATE_DEFAULT for style_home_label_so2_val_main
+	lv_style_set_radius(&style_home_label_so2_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_bg_color(&style_home_label_so2_val_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_color(&style_home_label_so2_val_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_bg_grad_dir(&style_home_label_so2_val_main, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+	lv_style_set_bg_opa(&style_home_label_so2_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_text_color(&style_home_label_so2_val_main, LV_STATE_DEFAULT, lv_color_make(0xff, 0xff, 0xff));
+	lv_style_set_text_font(&style_home_label_so2_val_main, LV_STATE_DEFAULT, &lv_font_montserrat_16);
+	lv_style_set_text_letter_space(&style_home_label_so2_val_main, LV_STATE_DEFAULT, 2);
+	lv_style_set_pad_left(&style_home_label_so2_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_right(&style_home_label_so2_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_top(&style_home_label_so2_val_main, LV_STATE_DEFAULT, 0);
+	lv_style_set_pad_bottom(&style_home_label_so2_val_main, LV_STATE_DEFAULT, 0);
+	lv_obj_add_style(ui->home_label_so2_val, LV_LABEL_PART_MAIN, &style_home_label_so2_val_main);
+	lv_obj_set_pos(ui->home_label_so2_val, 227, 116);
+	lv_obj_set_size(ui->home_label_so2_val, 36, 0);
+	lv_cont_set_layout(ui->home_cont_master, LV_LAYOUT_OFF);
+	lv_cont_set_fit(ui->home_cont_master, LV_FIT_NONE);
 
 }
 

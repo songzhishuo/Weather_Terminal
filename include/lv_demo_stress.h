@@ -31,6 +31,11 @@ void change_page(char page);
 void lv_set_time(char *time);
 void lv_set_date(char *date);
 
+void lv_set_so2_val(uint16_t date);
+void lv_set_pm25_val(uint16_t date);
+void lv_set_temp_val(uint16_t date);
+void lv_set_weather_icon(uint8_t icon_id);
+
 void chart_test(ALL_WEATHER_DATA_T data);          /*折线绘制测试*/
 /**********************
  *      MACROS

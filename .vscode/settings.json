@@ -4,6 +4,8 @@
         "wifista.h": "c",
         "spi.h": "c",
         "my_system.h": "c",
-        "my_weather.h": "c"
+        "my_weather.h": "c",
+        "lv_demo_stress.h": "c",
+        "lvgl.h": "c"
     }
 }

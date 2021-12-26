@@ -421,14 +421,31 @@ void network_task(lv_task_t * task)
         }
         
     }
-    
+    else if(page_flag == 0)
+    {
+        /*更新温度 so2 pm2.5的值*/
+        lv_set_temp_val(all_weather_data.now_temp);
+        lv_set_so2_val(all_weather_data.so2_val);
+        lv_set_pm25_val(all_weather_data.pm2_5_val);
+
+        /*更新天气图标*/
+        uint8_t weather = all_weather_data.day_weather_data->weather;     //WEATHER_E
+       // weather               // 2021_xx_xx.107
+
+        lv_set_weather_icon(weather);
+
+        Serial.printf("tmp[%d] ,so2[%d] pm25[%d] weather[%d]", all_weather_data.now_temp,
+            all_weather_data.so2_val, all_weather_data.pm2_5_val, weather);
+    }
+
    // Serial.println("---> network_task");
 }
 
 static char blink_flag = 0;
 void time_ntp_task(lv_task_t * task)
 {
-#if 0                   /*实时获取NTP时间 太慢了*/
+
+#if 0                                   /*实时获取NTP时间 太慢了*/
     devicetime = getNTPtime();
     if (devicetime == 0) {
         Serial.println("Failed to get time from network time server.");
@@ -548,11 +565,11 @@ void loop() {
         task_init_flag = true;
 
         /**Init lvlg task**/
-        lv_task_t* task2 = lv_task_create(network_task, 1000, LV_TASK_PRIO_MID, _NULL);       // 1S
-        button_task_id = lv_task_create(button_scan_task, 10, LV_TASK_PRIO_HIGHEST, _NULL);     //10mS
-
         lv_task_t* time_task_id = lv_task_create(time_ntp_task, 1000, LV_TASK_PRIO_HIGHEST, _NULL);
-        lv_task_ready(button_task_id);
+        
+        button_task_id = lv_task_create(button_scan_task, 10, LV_TASK_PRIO_HIGHEST, _NULL);     //10mS     
+        lv_task_t* task2 = lv_task_create(network_task, 3000, LV_TASK_PRIO_MID, _NULL);       // 1S
+        //lv_task_ready(button_task_id);
     }
 
 #if (LVGL == 1)  
