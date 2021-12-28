@@ -568,8 +568,8 @@ void loop() {
         lv_task_t* time_task_id = lv_task_create(time_ntp_task, 1000, LV_TASK_PRIO_HIGHEST, _NULL);
         
         button_task_id = lv_task_create(button_scan_task, 10, LV_TASK_PRIO_HIGHEST, _NULL);     //10mS     
-        lv_task_t* task2 = lv_task_create(network_task, 3000, LV_TASK_PRIO_MID, _NULL);       // 1S
-        //lv_task_ready(button_task_id);
+        lv_task_t* network_task_id = lv_task_create(network_task, 3000, LV_TASK_PRIO_MID, _NULL);       // 1S
+    
     }
 
 #if (LVGL == 1)  
