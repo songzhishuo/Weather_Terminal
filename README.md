@@ -277,7 +277,7 @@ Github：https://github.com/songzhishuo/Weather_Terminal/tree/wio_terminal
 
 # 演示视频
 
-<iframe src="//player.bilibili.com/player.html?aid=935227584&bvid=BV1EM4y1F7jJ&cid=470662052&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+https://www.bilibili.com/video/BV1EM4y1F7jJ?share_source=copy_web
 
 # 问题记录
 
