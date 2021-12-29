@@ -268,3 +268,120 @@ time_task_id：定时获取网络时间的线程
 button_scan_task：按键状态检测线程，并且进行LVGL页面切换和资源申请释放
 
 network_task：解析HTTP数据和获取天气资源的线程
+
+
+
+# 资料链接
+Github：https://github.com/songzhishuo/Weather_Terminal/tree/wio_terminal
+
+
+# 演示视频
+
+<iframe src="//player.bilibili.com/player.html?aid=935227584&bvid=BV1EM4y1F7jJ&cid=470662052&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+# 问题记录
+
+## Platform 安装失败或配置失败
+
+### 问题描述：
+
+在配置pio时，发现更新包总是失败（如下图所示），开启代理后成功。
+
+![image-20211108234728133](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211108234728133.png)
+
+### 代理开启方法：
+
+[VSCode — PlatformIO latest documentation](https://docs.platformio.org/en/latest/integration/ide/vscode.html#proxy-server-support)
+
+![image-20211108234916424](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211108234916424.png)
+
+
+
+配置完成之后如下所示：
+
+![image-20211108235208883](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211108235208883.png)
+
+![image-20211108235239052](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211108235239052.png)
+
+参考：
+
+[PlatformIO使用中遇到的坑 | spaceman (nu-ll.github.io)](https://nu-ll.github.io/2021/02/24/PlatformIO使用中遇到的坑/)
+
+[pio platform install — PlatformIO latest documentation](https://docs.platformio.org/en/latest//core/userguide/platforms/cmd_install.html)
+
+## 能识别到端口，但是下载失败
+
+### 问题描述：
+
+有时会偶现下载失败的问题，原因为下载端口在下载复位后发生了改变，PlatformIO 无法检测到下载端口。
+
+
+
+### 解决方法：
+
+将工程配置清空，从新编译下载。
+
+![image-20211109002150393](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211109002150393.png)
+
+## wifi 无响应
+
+### 问题描述
+
+在烧录demo之后串口无打印，wifi模块也无响应。程序卡死在初始化中。这是因RTL8710模组的固件太老需要更新最新的固件便可以使用。
+
+![image-20211112143546913](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211112143546913.png)
+
+## LVGL GUI Guider 切换到仿真
+
+lv_style_reset 接口替换成 lv_style_init
+
+## LVGL 使能字体
+
+C:\Users\songz\Desktop\wio\Weather_Terminal\.pio\libdeps\seeed_wio_terminal\Seeed_Arduino_lvgl\src\src\lv_conf_internal.h
+
+![image-20211129230746096](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211129230746096.png)
+
+## 图片使能
+
+![image-20211218231114818](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211218231114818.png)
+
+## LVGL 时间片调度
+
+wio arduino 下没找到硬件定时器的API，所以我们通过获取**micros(void)**或者**millis( void )** 来进行定时。
+
+* micros 获取系统运行的微秒数
+* millis 获取系统运行的毫秒数
+
+然后改写我们的loop函数如下所示。
+
+```c++
+void loop() {
+
+#if (LVGL == 1)  
+    lv_task_handler(); /* let the GUI do its work */
+#endif    
+    
+    timer_tick_now = micros();
+    if((timer_tick_now - timer_tick_last) >= 1000)       //1ms
+    {
+        lv_tick_handler();
+        timer_tick_last = micros(); 
+    }
+}
+```
+
+
+
+![00](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/00.BMP)
+
+![image-20211210214925857](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211210214925857.png)
+
+
+
+## PIO 编译wio 提示SPI.h找不到
+
+![image-20211215224314043](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211215224314043.png)
+
+默认情况下我们包含的是wio的标准arduino库，鬼知道这里是怎么链接的。。。。就是找不到。WTF，调试了半天发现在`main.cpp` 中包含"SPI.h"即可。
+
+![image-20211215224546558](https://gitee.com/song_zhi_shu/my-image-host/raw/master/img/image-20211215224546558.png)
